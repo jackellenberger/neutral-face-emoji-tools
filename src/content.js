@@ -5,7 +5,8 @@ import CSSLoaded from './styles/content.less';
 
 import uploadEmoji from './upload-emoji';
 
-const ELEMENT_TO_INSERT_BEFORE_SELECTOR = '.p-customize_emoji_wrapper';
+const ELEMENT_TO_INSERT_BEFORE_SELECTOR_CUSTOMIZE = '.p-customize_emoji_wrapper';
+const ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES = '#message_pane_drag_overlay_mount_point'; // '#client_header'; //
 const SET_ICON_URL = chrome.runtime.getURL('images/icon_128.png');
 
 function createUploadElement (upload) {
@@ -26,8 +27,8 @@ function createUploadElement (upload) {
   return element;
 }
 
-elementReady(ELEMENT_TO_INSERT_BEFORE_SELECTOR).then(() => {
-    const elementToInsertBefore = document.querySelector(ELEMENT_TO_INSERT_BEFORE_SELECTOR);
+elementReady(ELEMENT_TO_INSERT_BEFORE_SELECTOR_CUSTOMIZE).then(() => {
+    const elementToInsertBefore = document.querySelector(ELEMENT_TO_INSERT_BEFORE_SELECTOR_CUSTOMIZE);
     const containerDvi = document.createElement('div');
 
     elementToInsertBefore.before(containerDvi);
@@ -51,6 +52,79 @@ elementReady(ELEMENT_TO_INSERT_BEFORE_SELECTOR).then(() => {
     const uploadInputElement = document.querySelector('#nfet-upload-input');
     const uploadZoneElement = document.querySelector('#nfet-upload-zone');
     const dropzone = new SimpleDropzone(uploadZoneElement, uploadInputElement);
+
+    dropzone.on('drop', ({ files }) => {
+      const uploadsElement = document.querySelector('.neutral-face-emoji-tools .nfet__uploader__uploads');
+
+      files.forEach(file => {
+        let uploadElement;
+        const id = uploadEmoji(file, (error) => {
+          if (error) {
+            uploadElement.classList.add('nfet__uploader__upload--error');
+            uploadElement.querySelector('.nfet__uploader__upload__status__text').innerText = error;
+          } else {
+            uploadElement.classList.add('nfet__uploader__upload--success');
+            uploadElement.querySelector('.nfet__uploader__upload__status__text').innerText = 'added successfully';
+          }
+        });
+        uploadElement = createUploadElement({
+          id,
+          file
+        });
+        uploadsElement.appendChild(uploadElement);
+      });
+    });
+});
+
+elementReady(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES).then(() => {
+    const elementToInsertBefore = document.querySelector(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES);
+    const containerDvi = document.createElement('div');
+
+    elementToInsertBefore.after(containerDvi);
+    containerDvi.style.display = 'none';
+
+    containerDvi.innerHTML = `
+      <div class="neutral-face-emoji-tools">
+        <h4 class="nfet__uploader__heading">
+          <img class="nfet__uploader__heading__icon" src="${SET_ICON_URL}"></img>
+          <span class="nfet__uploader__heading__text">Bulk Emoji Uploader</span>
+        </h4>
+        <p class="nfet__uploader__subheading">Drag and drop images into the area below. Any images dropped there will be automatically uploaded using their filename as the emoji name.</p>
+        <p class="nfet__uploader__input-note input_note">Example: <span class="normal">"ditto.gif" will be added as "ditto"</span></p>
+        <div id="nfet-upload-zone" class="nfet__uploader__dropzone">
+          <div class="nfet__uploader__dropzone__content input_note">
+            <strong>Drop images here</strong> or click to open a file dialog
+          </div>
+          <input class="nfet__uploader__dropzone__input" id="nfet-upload-input" type="file" />
+        </div>
+        <ul class="nfet__uploader__uploads"></ul>
+      </div>`;
+    const uploadInputElement = document.querySelector('#nfet-upload-input');
+    const uploadZoneElement = document.querySelector('#nfet-upload-zone');
+    const dropzone = new SimpleDropzone(uploadZoneElement, uploadInputElement);
+
+  let dragTimeout;
+  document.addEventListener('dragenter', (e) => {
+    console.log('enter');
+    containerDvi.style.display = 'block';
+  }, true);
+
+  document.addEventListener('dragleave', (e) => {
+    dragTimeout = setTimeout(() => {
+      dragTimeout = undefined;
+      console.log('leave');
+      containerDvi.style.display = 'none';
+    });
+  }, true);
+
+  document.addEventListener('dragover', (e) => {
+    console.log('over');
+    if (dragTimeout) {
+      clearTimeout(dragTimeout);
+      dragTimeout = undefined;
+    }
+  }, true);
+
 
     dropzone.on('drop', ({ files }) => {
       const uploadsElement = document.querySelector('.neutral-face-emoji-tools .nfet__uploader__uploads');
