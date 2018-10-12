@@ -125,7 +125,6 @@ elementReady(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES).then(() => {
     }
   }, true);
 
-
     dropzone.on('drop', ({ files }) => {
       const uploadsElement = document.querySelector('.neutral-face-emoji-tools .nfet__uploader__uploads');
 
@@ -151,6 +150,22 @@ elementReady(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES).then(() => {
           file
         });
         uploadsElement.appendChild(uploadElement);
+        [containerDvi, shadeNode].forEach(node => {
+          setTimeout(() => {
+            let opacity = 1;
+            let fadeTimer = setInterval(() => {
+              if (opacity <= 0.1) {
+                clearInterval(fadeTimer);
+                node.style.display = 'none';
+                node.style.opacity = 1;
+              }
+              node.style.opacity = opacity;
+              node.style.filter = `alpha(opacity=${opacity * 100})`;
+              opacity -= opacity * 0.1;
+            }, 50);
+            node.fadeOut();
+          }, 3000)
+        });
       });
     });
 });
