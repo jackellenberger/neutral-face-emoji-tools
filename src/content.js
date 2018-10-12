@@ -131,6 +131,9 @@ elementReady(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES).then(() => {
 
       files.forEach(file => {
         let uploadElement;
+        let shadeLength;
+        const shadeNode = document.querySelector('.p-message_pane_drag_overlay');
+
         const id = uploadEmoji(file, (error) => {
           if (error) {
             uploadElement.classList.add('nfet__uploader__upload--error');
@@ -140,6 +143,9 @@ elementReady(ELEMENT_TO_INSERT_INTO_SELECTOR_MESSAGES).then(() => {
             uploadElement.querySelector('.nfet__uploader__upload__status__text').innerText = 'added successfully';
           }
         });
+        if (shadeLength = window.getComputedStyle(shadeNode).bottom) {
+          shadeNode.setAttribute('style', `bottom: ${parseInt(shadeLength, 10) + 30}px !important`);
+        }
         uploadElement = createUploadElement({
           id,
           file
